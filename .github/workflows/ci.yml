@@ -1,0 +1,41 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Tres juizes. O catalogo de Ross Williams, com o conferidor de cada um dos
+      # dezoito modelos. O gzip e o zlib, que guardam o CRC-32 e o Adler-32 no
+      # rodape do fluxo -- dois oraculos ILIMITADOS escondidos no proprio .NET,
+      # usados aqui em todas as 65.793 mensagens de ate dois bytes. E a versao
+      # bit a bit, que e a definicao, contra a versao por tabela.
+      - name: testes
+        run: dotnet test testes/Crc.Testes/Crc.Testes.csproj -c Release --nologo -v q
+
+      # As medidas rodam para REGISTRAR numeros. Nao ha asseveracao de tempo:
+      # teste de relogio em maquina compartilhada falha sem nada ter piorado.
+      - name: o catalogo, com o conferidor de cada modelo
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release --nologo -- catalogo
+
+      - name: quantos erros escapam de cada soma
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release --nologo -- deteccao
+
+      - name: por que o registrador comeca em uns
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release --nologo -- zeros
